@@ -17,7 +17,7 @@ final class UsersVM: ObservableObject{
     {
         isLoading = true
         
-        NetworkManager.shared.fetch(url: URL(string: "https://api.github.com/users")!) { data in
+        NetworkManager.shared.fetch(urlString: "users") { data in
             return try! JSONDecoder().decode([UsersModel].self, from: data)
         }completion: { result in
             DispatchQueue.main.async {

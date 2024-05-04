@@ -8,77 +8,43 @@
 import SwiftUI
 
 struct UsersView: View {
-    @StateObject var usersVM = UsersVM()
-
-    var body: some View {
+    @EnvironmentObject var usersVM: UsersVM
+    var body: some View
+    {
         ZStack {
-            
             NavigationView {
-                List {
-                    ForEach(usersVM.usersModel, id: \.id) { item in
-                        HStack{
-                            ProfileImageView(urlString: item.avatarURL ?? "")
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 120, height: 90)
-                                .cornerRadius(8)
-                            Text(item.login ?? "")
+                    List {
+                        ForEach(usersVM.usersModel, id: \.id) { item in
+                            UserCell(item: item)
+                                .listRowInsets(EdgeInsets())
                         }
                     }
-                }
-                .navigationTitle("User List")
+                    .navigationTitle("User's List")
             }
-            .onAppear {
-                usersVM.getUsersList()
-            }
-            
+            .onAppear { usersVM.getUsersList() }
             if usersVM.isLoading { LoadingView() }
         }
-        
         .alert(item: $usersVM.alertItem) { alertItem in
             Alert(title: alertItem.title, message: alertItem.message, dismissButton: alertItem.dismissButton)
         }
     }
 }
 
-final class ImageLoader: ObservableObject {
-    
-    @Published var image: Image? = nil
-    
-    func load(fromURL url: String) {
-        NetworkManager.shared.downloadImage(from: url) { uiImage in
-            guard let uiImage = uiImage else { return }
-            DispatchQueue.main.async {
-                self.image = Image(uiImage: uiImage)
+struct UserCell: View{
+    @State private var isShowingDetailView = false
+    let item: UsersModel
+    var body: some View{
+        NavigationLink(destination: UserDetailView(usersModel: item), isActive: $isShowingDetailView) {
+            HStack{
+                ProfileImageView(urlString: item.avatarURL ?? "")
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 120, height: 90)
+                    .cornerRadius(8)
+                Text(item.login ?? "")
+                Spacer()
             }
+            .padding(.all,5)
+
         }
-    }
-}
-
-
-struct RemoteImage: View {
-    
-    var image: Image?
-    
-    var body: some View {
-        image?.resizable() ?? Image("avatar").resizable()
-    }
-}
-
-
-struct ProfileImageView: View {
-    
-    @StateObject private var imageLoader = ImageLoader()
-    var urlString: String
-    
-    var body: some View {
-        RemoteImage(image: imageLoader.image)
-            .onAppear { imageLoader.load(fromURL: urlString) }
-    }
-}
-
-
-struct UsersView_Previews: PreviewProvider {
-    static var previews: some View {
-        UsersView()
     }
 }

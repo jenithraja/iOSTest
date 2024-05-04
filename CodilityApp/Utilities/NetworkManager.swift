@@ -12,9 +12,12 @@ class NetworkManager: NSObject {
 
     private let cache = NSCache<NSString, UIImage>()
     private override init() {}
+    var baseURL: URL {
+        return URL(string: "https://api.github.com")!
+    }
+    func fetch<T: Codable>(urlString:String, parse: @escaping (Data) -> T?, completion: @escaping (Result <T?, NetworkError>) -> Void) {
+        let url = self.baseURL.appendingPathComponent(urlString)
 
-    func fetch<T: Codable>(url:URL, parse: @escaping (Data) -> T?, completion: @escaping (Result <T?, NetworkError>) -> Void) {
-        
         URLSession.shared.dataTask(with: url){ data, response, error in
             
             if let _ =  error {
